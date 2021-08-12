@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification push</title>
+</head>
+
+<body>
+    Chaves <br />
+    <span id="keys"></span>
+    <script>
+        function urlBase64ToUint8Array(base64String) {
+            var padding = '='.repeat((4 - base64String.length % 4) % 4);
+            var base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+
+            var rawData = window.atob(base64);
+            var outputArray = new Uint8Array(rawData.length);
+
+            for (var i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        //Apenas para testar as notif
+        if (window.Notification) {
+            if (Notification.permission !== 'granted') {
+                Notification.requestPermission()
+            }
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(async (registration) => {
+                    // Registration was successful
+                    try {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+
+                        const pubKey = 'BE4Qe5Od5gOom__MA_DQPPjniZRfXsG1Pd0WZmGM8GbxTTUlXbcUkR4DyaheBjErju_sdi_kNuLZkPyEcPdh2ek'
+
+                        const subscription = await registration.pushManager.getSubscription()
+
+                        const applicationServerKey = new urlBase64ToUint8Array(pubKey)
+
+                        const subscriptionParams = await registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey,
+                        })
+
+                        const keysGenerated = await subscriptionParams.toJSON()
+
+                        //Colocar endpoint e keys gerado aqui no arquivo GO, cada browser gera um endpoint diferente
+                        console.warn(keysGenerated)
+
+                        document.querySelector('#keys').innerHTML = JSON.stringify(keysGenerated, null, "\t")
+                    } catch (err) {
+                        console.log(err)
+                    }
+                }, function (err) {
+                    // registration failed :(
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>
