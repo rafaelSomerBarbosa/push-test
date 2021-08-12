@@ -36,7 +36,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').then(async (registration) => {
+                navigator.serviceWorker.register('/sw.js', { scope: 'push-test' }).then(async (registration) => {
                     // Registration was successful
                     try {
                         console.log('ServiceWorker registration successful with scope: ', registration.scope);
